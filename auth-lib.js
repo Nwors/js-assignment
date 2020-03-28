@@ -95,24 +95,44 @@ function groupRights(group) {
 }
 
 // Добавляет право right к группе group
-function addRightToGroup(right,group) {
+function addRightToGroup(right, group) {
     if(!listOfRights.includes(right) || !listOfGroups.includes(group)) throw new Error("Wrong input type")  
     groupsRights[group].push(right)
 }
 
 // Удаляет право right из группы group. Должна бросить исключение, если права right нет в группе group
 function removeRightFromGroup(right, group) {
-    if(!listOfRights.includes(right) || !listOfGroups.includes(group)) throw new Error ("This right or group does not exist")
+    //if(!listOfRights.includes(right) || !listOfGroups.includes(group)) throw new Error("Wrong input type")
     if(!groupsRights[group].includes(right)) throw new Error("Group does not have this right")
     groupsRights[group].splice(groupsRights[group].indexOf(right),1)
 }
 
-function login(username, password) {
+let session = {}
 
+function login(username, password) {
+    let tempList = listOfUsers.filter(user => user.name == username && user.password == password)
+    if(!session[username] && tempList.length) {
+        session[username] = true;
+        return true
+    } else {return false}
 }
 
-function currentUser() {}
+function currentUser() {
+    for(let key in session) {
+        if (session[key]) return listOfUsers.filter(user => user.name == key)[0]
+    }
+}
 
-function logout() {}
+function logout() {
+    for(let key in session) {
+        if(session[key]) session[key] = false
+    }
+}
 
-function isAuthorized(user, right) {}
+function isAuthorized(user, right) {
+    if(!listOfUsers.includes(user) || !listOfRights.includes(right)) throw new Error("User or right has been deleted")
+    const getUserRights = (u) => listOfUsers.filter(item => item.name == u.name )[0].groups.map(group => groupsRights[group])
+    let authorized = false
+    getUserRights(user).forEach(array => {if(array.includes(right)) authorized = true})
+    return authorized
+}
